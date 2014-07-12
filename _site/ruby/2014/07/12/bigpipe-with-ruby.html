@@ -35,32 +35,36 @@
         </header>
 
         <span class="post-meta">
-        	<time datetime="2013-11-10">2013-11-10 18:18</time>
+        	<time datetime="2014-07-12">2014-07-12 23:31</time>
         	
         		on
 	        	
-	        	    jekyll
-	        	
-	        	    update
+	        	    ruby
 	        	
 	        
        	</span>
 
-        <h1 class="post-title">Welcome to Jekyll!</h1>
+        <h1 class="post-title">使用Ruby实现BigPipe</h1>
 
         <section class="post-content">
-            <p>You&#39;ll find this post in your <code>_posts</code> directory - edit this post and re-build (or run with the <code>-w</code> switch) to see your changes!
-To add new posts, simply add a file in the <code>_posts</code> directory that follows the convention: YYYY-MM-DD-name-of-post.ext.</p>
+            <p>试想这样一个场景，一个经常访问的网站，每次打开它的页面都要要花费6 秒；同时另外一个网站提供了相似的服务，但响应时间只需3 秒，那么你会如何选择呢？数据表明，如果用户打开一个网站，等待3~4 秒还没有任何反应，他们会变得急躁，焦虑，抱怨，甚至关闭网页并且不再访问，这是非常糟糕的情况。所以，网页加载的速度十分重要,尤其对于拥有大量用户的大型网站，有着大量并发请求、海量数据等客观情况，速度就成了必须攻克的难题之一。</p>
 
-<p>Jekyll also offers powerful support for code snippets:</p>
+<h3>BigPipe的技术背景</h3>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">&quot;Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">&#39;Tom&#39;</span><span class="p">)</span>
-<span class="c1">#=&gt; prints &#39;Hi, Tom&#39; to STDOUT.</span></code></pre></div>
+<p>2010 年初的时候，Facebook 的前端性能研究小组开始了他们的优化项目，经过了六个月的努力，成功的将个人空间主页面加载耗时由原来的5 秒减少为现在的2.5 秒。这是一个非常了不起的成就，也给用户来带来了很好的体验。在优化项目中，Facebook的高级研究科学家蒋长浩(Changhao Jiang)博士提出了一种新的页面加载技术，称之为Bigpipe。</p>
 
-<p>Check out the <a href="http://jekyllrb.com">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/mojombo/jekyll">Jekyll&#39;s GitHub repo</a>.</p>
+<h3>传统的页面加载模型</h3>
+
+<p>首先，我们来看一个传统页面的加载流程。一个动态页面从用户请求开始到最终渲染结束大致分成以下几个步骤：</p>
+
+<ol>
+<li>用户访问网页，浏览器发送一个HTTP请求到网络服务器</li>
+<li>服务器解析这个请求，然后从存储层取得数据，经过一系列复杂的处理生成一个html文件内容，并在一个HTTP Response 中把它传送给客户端</li>
+<li>HTTP response 在网络中传输</li>
+<li>浏览器解析这个Response ，创建一个DOM树，然后下载所需的CSS和JS文件</li>
+<li>下载完CSS文件后，浏览器解析他们并且应用在相应的内容上</li>
+<li>下载完JS后，浏览器解析和执行他们</li>
+</ol>
 
         </section>
 
@@ -84,15 +88,15 @@ To add new posts, simply add a file in the <code>_posts</code> directory that fo
 
             <section class="share">
                 <h4>分享</h4>
-                <a class="icon-twitter" href="http://twitter.com/share?text=Welcome to Jekyll!&amp;url=https://molezzz.github.io/jekyll/update/2013/11/10/welcome-to-jekyll.html"
+                <a class="icon-twitter" href="http://twitter.com/share?text=使用Ruby实现BigPipe&amp;url=https://molezzz.github.io/ruby/2014/07/12/bigpipe-with-ruby.html"
                     onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
                     <span class="hidden">Twitter</span>
                 </a>
-                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=https://molezzz.github.io/jekyll/update/2013/11/10/welcome-to-jekyll.html"
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=https://molezzz.github.io/ruby/2014/07/12/bigpipe-with-ruby.html"
                     onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
                     <span class="hidden">Facebook</span>
                 </a>
-                <a class="icon-google-plus" href="https://plus.google.com/share?url=https://molezzz.github.io/jekyll/update/2013/11/10/welcome-to-jekyll.html"
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=https://molezzz.github.io/ruby/2014/07/12/bigpipe-with-ruby.html"
                    onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
                     <span class="hidden">Google+</span>
                 </a>

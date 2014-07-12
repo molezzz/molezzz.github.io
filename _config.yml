@@ -1,9 +1,8 @@
-name: Your New Jekyll Site
-description: Blogging about stuffs
-meta_description: "Your New Jekyll Site, Blogging about stuffs"
+name: Molezz 的胡言乱语
+description: 一枚程序猿的自留地
+meta_description: "Ruby,Javascript,Go and so on..."
 
 markdown: redcarpet
-highlighter: true
 logo: false
 paginate: 15
 
