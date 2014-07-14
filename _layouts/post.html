@@ -8,7 +8,7 @@ archive: false
 
     <article class="post">
         <header class="post-header">
-            <a id="blog-logo" href="{{site.baseurl}}">
+            <a id="blog-logo" href="{{site.home}}">
                 {% if site.logo %}
                     <img src="{{site.logo}}" alt="{{ site.name }}" />
                 {% else %}
@@ -43,8 +43,17 @@ archive: false
     		</ul>
         </section>
         {% endif %}
+        <div class="page-nav">
+            {% if page.previous %}
+            <a href="{{ page.previous.url }}">上一篇：{{ page.previous.title }}</a>
+            {% endif %}            
+            {% if page.next %}
+            <a href="{{ page.next.url }}">下一篇: {{page.next.title}}</a>
+            {% endif %}
+        </div>
 
-        <footer class="post-footer">
+        <footer class="post-footer">          
+
         	<!-- If we want to display author's name and bio -->
             {% if site.author %}
                 <section class="author">
@@ -93,9 +102,24 @@ archive: false
             	<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
             </section>
             {% endif %}
-
+            <!-- 多说评论框 start -->
+            <div class="ds-thread" data-thread-key="{{page.id}}" data-title="{{page.title}}" data-url="{{page.url}}"></div>
+            <!-- 多说评论框 end -->
+            <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+            <script type="text/javascript">
+            var duoshuoQuery = {short_name:"molezz"};
+                (function() {
+                    var ds = document.createElement('script');
+                    ds.type = 'text/javascript';ds.async = true;
+                    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+                    ds.charset = 'UTF-8';
+                    (document.getElementsByTagName('head')[0] 
+                     || document.getElementsByTagName('body')[0]).appendChild(ds);
+                })();
+            </script>
+            <!-- 多说公共JS代码 end --> 
         </footer>
 
-    </article>
+    </article>    
 
 </main>

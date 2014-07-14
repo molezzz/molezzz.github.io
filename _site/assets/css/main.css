@@ -33,3 +33,9 @@ img.profile {
   	border-radius: 50px;
 }
 
+.page-nav a {
+ 	display: block;
+ 	text-decoration: none;
+ 	font-weight: 0.8em;
+ 	color: #999;
+}

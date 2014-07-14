@@ -5,6 +5,8 @@ meta_description: "Ruby,Javascript,Go and so on..."
 markdown: redcarpet
 logo: false
 paginate: 15
+timezone: Asia/Shanghai
+home: 'https://molezzz.github.io'
 
 # Details for the RSS feed generator
 url:            'https://molezzz.github.io'
