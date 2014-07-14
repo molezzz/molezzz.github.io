@@ -51,7 +51,7 @@
 
 <h3>BigPipe的技术背景</h3>
 
-<p>2010 年初的时候，Facebook 的前端性能研究小组开始了他们的优化项目，经过了六个月的努力，成功的将个人空间主页面加载耗时由原来的5 秒减少为现在的2.5 秒。这是一个非常了不起的成就，也给用户来带来了很好的体验。在优化项目中，Facebook的高级研究科学家蒋长浩(Changhao Jiang)博士提出了一种新的页面加载技术，称之为Bigpipe。</p>
+<p>2010 年初的时候，Facebook 的前端性能研究小组开始了他们的优化项目，经过了六个月的努力，成功的将个人空间主页面加载耗时由原来的5 秒减少为现在的2.5 秒。这是一个非常了不起的成就，也给用户来带来了很好的体验。在优化项目中，Facebook的高级研究科学家蒋长浩(Changhao Jiang)博士提出了一种新的页面加载技术，称之为Bigipe。</p>
 
 <h3>传统的页面加载模型</h3>
 
@@ -85,11 +85,11 @@
 
 <p><img src="/images/2014-07/12/bs_ajax.png" alt="Ajax流程图"></p>
 
-<p>使用Ajax后虽然页面主体呈现时间缩短了，但是整个页面完全加载的时间反而会增加，因为每个Ajax请求都会有请求和响应的等待时间。使用Ajax还会产生副作用，那就是会增加浏览器发送的请求数。对于访问量很大的网站，这种做法会增加服务器的负担。</p>
+<p>使用Ajax后虽然页面主体呈现时间缩短了，但是整个页面完全加载的时间反而会增加，因为每个Ajax请求都会有请求和响应的等待时间。使用Ajax还会产生副作用，那就是会增加浏览器发送的请求数。对于访问量很大的网站，这种做法会无疑增加服务器的负担。</p>
 
 <h3>BigPipe的思想</h3>
 
-<p>为了解决上面的问题，BigPipe提出了分块的概念，并且将块在一个HTTP请求中发送给浏览器。即根据页面的内容，将整个页面划分成若干的区块--称为“pagelet”，服务器每完成一个pagelet的处理，都会立即将其通过当前的HTTP连接发送给浏览器，而不再需要等待浏览器端通过XMLHttpRequest发送新的请求。浏览器收到新的pagelet后，会立刻按照需求处理内容，加载相应的CSS和Javascript，并进行渲染。浏览器处理当前pagelet的同时，服务器在生成新的pagelet。众多pagelet加载的不同阶段像流水线一样在浏览器和服务器上执行，这样就做到了浏览器和服务器的并行化，从而达到重叠服务器端运行时间和浏览器端运行时间的目的。使用BigPipe 不仅可以节省时间，使加载的时间缩短，而且可以同过pagelet的分步输出，使一部分的页面内容更快的输出，从而获得更好的用户体验。BigPipe 中，用户提出页面访问请求后，页面的完整加载流程如下:</p>
+<p>为了解决传统加载模型的问题，BigPipe诞生了。BigPipe提出了分块的概念，并将块在一个HTTP请求中发送给浏览器。即根据页面的内容，将整个页面划分成若干的区块 —— 称为“pagelet”。服务器每完成一个pagelet的处理，都会立即将其通过当前的HTTP连接发送给浏览器，而不再需要等待浏览器端通过XMLHttpRequest发送新的请求。浏览器收到新的pagelet后，会立刻处理内容，加载相应的CSS和Javascript，并进行渲染。浏览器处理当前pagelet的同时，服务器在生成新的pagelet。众多pagelet加载的不同阶段像流水线一样在浏览器和服务器上执行，这样就做到了浏览器和服务器的并行化，从而达到重叠服务器端运行时间和浏览器端运行时间的目的。使用BigPipe 不仅可以节省时间，使加载的时间缩短，而且可以同过pagelet的分步输出，使一部分的页面内容更快的输出，从而获得更好的用户体验。BigPipe 中，用户提出页面访问请求后，页面的完整加载流程如下:</p>
 
 <ol>
 <li>Request parsing：服务器解析和检查http request</li>
@@ -112,7 +112,7 @@
 
 <h3>BigPipe的实现原理</h3>
 
-<p>了解了BigPipe的思想之后，我们来看看它的实现原理。当浏览器向服务器发起请求后，服务器接受请求，并对其进行检查，如果请求有效，服务器会立刻返回一个HTTP response给浏览器，其内容是一段标准的HTML代码，包括<code>&lt;head&gt;</code>和<code>&lt;body&gt;</code>标签。这段HTML代码只是页面的基本框架，服务器不应该做一些耗时较长的操作，以便内容能够快速的发送给浏览器。<code>&lt;head&gt;</code>中包括BigPipe依赖的JS和CSS，浏览器收到这个响应后就会立刻开始请求并处理JS和CSS。HTML框架的<code>&lt;body&gt;</code>是未关闭，方便后面的pagelet传输。其中还包括pagelet的占位符，例如：</p>
+<p>了解了BigPipe的思想之后，我们来看看它的实现原理。当浏览器向服务器发起请求后，服务器接受请求，并对其进行检查，如果请求有效，服务器会立刻返回一个HTTP response给浏览器，其内容是一段标准的HTML代码，包括<code>&lt;head&gt;</code>和<code>&lt;body&gt;</code>标签。这段HTML代码只是页面的基本框架，服务器不应该做一些耗时较长的操作，以便内容能够快速的发送给浏览器。<code>&lt;head&gt;</code>中包括BigPipe依赖的JS和CSS，浏览器收到这个响应后就会立刻开始请求并处理JS和CSS。为了方便后面的pagelet传输，HTML框架的<code>&lt;body&gt;</code>是未关闭，其中还包括pagelet的占位符，例如：</p>
 <div class="highlight"><pre><code class="language-html" data-lang="html"><span class="cp">&lt;!DOCTYPE html&gt;</span>
 <span class="nt">&lt;html&gt;</span>
 <span class="nt">&lt;head&gt;</span>
@@ -153,11 +153,11 @@
 <p>服务器处理好pagelet后，会将类似下面的代码发送给浏览器：</p>
 <div class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;script&gt;</span><span class="nx">Bigpipe</span><span class="p">.</span><span class="nx">puts</span><span class="p">(</span><span class="s2">&quot;pagelat1&quot;</span><span class="p">,</span><span class="s2">&quot;这是第一块&quot;</span><span class="p">)</span><span class="nt">&lt;/script&gt;</span>
 </code></pre></div>
-<p>而后浏览器会处理这个<code>&lt;scritp&gt;</code>并重新渲染页面。这样，前端对pagelet的发送顺序并没有特殊的要求，谁先收到谁先被处理，因此也解决了传统模型中前端对后端在数据发送顺序上的依赖问题。</p>
+<p>而后浏览器会处理这个<code>&lt;scritp&gt;</code>并重新渲染页面。这样，前端对pagelet的发送顺序并没有特殊的要求，谁先收到谁先被处理，因此也能让网页各部分的显示顺序与数据的传输顺序解耦。</p>
 
 <h3>使用Ruby实现BigPipe</h3>
 
-<p>晚上目前还很少见使用ruby实现BigPipe的方案，只有一个bigpipe-rails的gem也是很久前的未更新项目了。这里我使用<code>Sinatra</code>框架配合<code>EventMachine</code>简单的实现了BigPipe。首先，先看一下使用传统的模型的情况：</p>
+<p>网上目前还很少见使用ruby实现BigPipe的方案，只有一个bigpipe-rails的gem也是很久前的未更新项目了。这里我使用<code>Sinatra</code>框架配合<code>EventMachine</code>简单的实现了BigPipe。首先，先看一下使用传统的模型的情况：</p>
 
 <p><code>views/normal.erb</code></p>
 <div class="highlight"><pre><code class="language-html" data-lang="html"><span class="cp">&lt;!DOCTYPE html&gt;</span>
@@ -312,6 +312,55 @@ sequence
 <p><img src="/images/2014-07/12/bs_chunked_websnap1.png" alt="chunked1"></p>
 
 <p><img src="/images/2014-07/12/bs_chunked_websnap2.png" alt="chunked2"></p>
+
+<p>到目前为止，BigPipe还没有真正实现。现在还需要在服务器端实现一个并发操作——并发去读取和处理数据。Ruby实现并发有很多种方法。这里我使用了<code>EventMachine</code>的<code>defer</code>方法，将模拟的费时操作放入<code>defer</code>的块中：</p>
+
+<p><code>main.rb</code></p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">get</span> <span class="s1">&#39;/bigpipe&#39;</span> <span class="k">do</span>
+  <span class="n">response</span><span class="o">[</span><span class="s1">&#39;Transfer-Encoding&#39;</span><span class="o">]</span> <span class="o">=</span> <span class="s1">&#39;chunked&#39;</span>
+  <span class="n">stream</span> <span class="ss">:keep_open</span> <span class="k">do</span> <span class="o">|</span><span class="n">out</span><span class="o">|</span>
+    <span class="n">queue</span> <span class="o">=</span> <span class="o">[]</span>
+    <span class="c1">#当两个任务都执行完毕，关闭连接。</span>
+    <span class="n">callback</span> <span class="o">=</span> <span class="nb">proc</span> <span class="k">do</span> <span class="o">|</span><span class="n">result</span><span class="o">|</span>      
+      <span class="n">queue</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span>
+      <span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">result</span>
+      <span class="n">out</span><span class="o">.</span><span class="n">close</span> <span class="k">if</span> <span class="n">queue</span><span class="o">.</span><span class="n">length</span> <span class="o">&gt;</span> <span class="mi">1</span>
+    <span class="k">end</span>
+    <span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">erb</span><span class="p">(</span><span class="ss">:bigpipe</span><span class="p">)</span>      
+    <span class="no">EM</span><span class="o">.</span><span class="n">epoll</span>
+    <span class="no">EM</span><span class="o">.</span><span class="n">run</span> <span class="k">do</span>
+
+      <span class="no">EM</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span><span class="nb">proc</span><span class="p">{</span>
+        <span class="nb">sleep</span> <span class="mi">2</span>
+        <span class="s1">&#39;&lt;script&gt;Bigpipe.puts(&quot;pagelat1&quot;,&quot;这是第一块&quot;)&lt;/script&gt;&#39;</span>        
+      <span class="p">},</span><span class="n">callback</span><span class="p">)</span>
+
+      <span class="no">EM</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span><span class="nb">proc</span> <span class="p">{</span>
+        <span class="nb">sleep</span> <span class="mi">5</span>
+        <span class="s1">&#39;&lt;script&gt;Bigpipe.puts(&quot;pagelat2&quot;,&quot;这是第二块&quot;)&lt;/script&gt;&#39;</span>        
+      <span class="p">},</span><span class="n">callback</span><span class="p">)</span>
+    <span class="k">end</span>    
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>代码中使用了一个数组来检测是否所有任务都已完成。每完成一个任务，程序向数组queue中写入一个值，当数组中有两个元素时，程序判定所有任务都结束，然后关闭当前的链接。现在打开浏览器，访问<code>/bigpipe</code>，就会发现，整体响应时间由原来的7秒，变成了5秒。BigPipe成功减少了2秒的响应时间:</p>
+
+<p><img src="/images/2014-07/12/bs_bigpipe_websnap.png" alt="bigpipe"></p>
+
+<p>上面的例子只是使用最简单的方法实现了基本的BigPipe，实际运用中还要进一步的加工和完善。欢迎大家来吐槽指正。</p>
+
+<h3>在项目中使用BigPipe会产生的问题</h3>
+
+<p>一个新技术有利必然有弊，BigPipe在优化用户体验的同时又会产生哪些问题呢？目前已知可能会产生如下两个问题：</p>
+
+<ol>
+<li>搜索引擎无法抓取完整页面，从而产生一些问题</li>
+<li>由于前端页面需要分块传输，会增加整个程序的复杂度，对开发团队的要求较高。</li>
+</ol>
+
+<p>对于第一个问题，目前采取的解决办法是：服务器端检测请求头，如果是搜索引擎的蜘蛛，则不使用BigPipe技术而是直接返回完整的文档。对于第二个问题：我觉得合理使用是不错的解决方案。一些简单的页面就无需使用BigPipe技术了。</p>
+
+<p>欢迎转载，请注明出处，谢谢~</p>
 
         </section>
     </article>
