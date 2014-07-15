@@ -12,7 +12,7 @@ body {font-size: 1.9rem;}
 
 /* Reduce font size and add line-height*/
 pre{
-	font-size: 0.75em;  
+	font-size: 0.75em;
 	line-height: 1.4em;
 }
 
@@ -38,4 +38,18 @@ img.profile {
  	text-decoration: none;
  	font-weight: 0.8em;
  	color: #999;
+}
+
+.post footer {
+	text-align: right;
+}
+
+.post footer a {
+	font-size: 0.8em;
+	color: #AEB0B3;
+	font-weight: 600;
+	text-decoration: none;
+}
+.post footer a:hover {
+	color: #57A3E8;
 }
