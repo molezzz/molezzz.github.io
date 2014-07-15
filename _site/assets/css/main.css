@@ -40,6 +40,10 @@ img.profile {
  	color: #999;
 }
 
+.post-title {
+	line-height: 2em;
+}
+
 .post footer {
 	text-align: right;
 }
