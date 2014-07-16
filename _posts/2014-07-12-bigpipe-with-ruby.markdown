@@ -284,3 +284,51 @@ end
 
 ![chunked2](/images/2014-07/12/bs_chunked_websnap2.png)
 
+到目前为止，BigPipe还没有真正实现。现在还需要在服务器端实现一个并发操作——并发去读取和处理数据。Ruby实现并发有很多种方法。这里我使用了`EventMachine`的`defer`方法，将模拟的费时操作放入`defer`的块中：
+
+`main.rb`
+
+``` ruby
+get '/bigpipe' do
+  response['Transfer-Encoding'] = 'chunked'
+  stream :keep_open do |out|
+    queue = []
+    #当两个任务都执行完毕，关闭连接。
+    callback = proc do |result|
+      queue << 1
+      out << result
+      out.close if queue.length > 1
+    end
+    out << erb(:bigpipe)
+    EM.epoll
+    EM.run do
+
+      EM.defer(proc{
+        sleep 2
+        '<script>Bigpipe.puts("pagelat1","这是第一块")</script>'
+      },callback)
+
+      EM.defer(proc {
+        sleep 5
+        '<script>Bigpipe.puts("pagelat2","这是第二块")</script>'
+      },callback)
+    end
+  end
+end
+```
+
+代码中使用了一个数组来检测是否所有任务都已完成。每完成一个任务，程序向数组queue中写入一个值，当数组中有两个元素时，程序判定所有任务都结束，然后关闭当前的链接。现在打开浏览器，访问`/bigpipe`，就会发现，整体响应时间由原来的7秒，变成了5秒。BigPipe成功减少了2秒的响应时间:
+
+![bigpipe](/images/2014-07/12/bs_bigpipe_websnap.png)
+
+上面的例子只是使用最简单的方法实现了基本的BigPipe，实际运用中还要进一步的加工和完善。欢迎大家来吐槽指正。
+
+###在项目中使用BigPipe会产生的问题
+一个新技术有利必然有弊，BigPipe在优化用户体验的同时又会产生哪些问题呢？目前已知可能会产生如下两个问题：
+
+1. 搜索引擎无法抓取完整页面，从而产生一些问题
+2. 由于前端页面需要分块传输，会增加整个程序的复杂度，对开发团队的要求较高。
+
+对于第一个问题，目前采取的解决办法是：服务器端检测请求头，如果是搜索引擎的蜘蛛，则不使用BigPipe技术而是直接返回完整的文档。对于第二个问题：我觉得合理使用是不错的解决方案。一些简单的页面就无需使用BigPipe技术了。
+
+欢迎转载，请注明出处，谢谢
