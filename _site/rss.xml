@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+  xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+  <channel>
+    <title>Molezz 的胡言乱语</title>
+    <link>https://molezzz.github.io</link>
+    <description>一枚程序猿的自留地</description>
+    <pubDate>Sat, 12 Jul 2014 23:31:01 +0800</pubDate>
+    <item>
+      <title>使用Ruby实现BigPipe</title>
+      <link>https://molezzz.github.io/ruby/2014/07/12/bigpipe-with-ruby.html</link>
+      <description>&lt;p&gt;数据表明，如果用户打开一个网站，等待3~4 秒还没有任何反应，他们会变得急躁，焦虑，抱怨，甚至关闭网页并且不再访问，这是非常糟糕的情况。所以，网页加载的速度十分重要,尤其对于拥有大量用户的大型网站，有着大量并发请求、海量数据等客观情况，速度就成了必须攻克的难题之一。BigPipe的出现，为这个问题提供了一种可行的解决方案 ...&lt;/p&gt;
+</description>
+      <pubDate>Sat, 12 Jul 2014 23:31:01 +0800</pubDate>
+      <dc:date>2014-07-12T23:31:01+08:00</dc:date>
+    </item>
+    <dc:date>2014-07-12T23:31:01+08:00</dc:date>
+  </channel>
+</rss>
