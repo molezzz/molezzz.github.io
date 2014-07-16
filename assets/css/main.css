@@ -44,16 +44,16 @@ img.profile {
 	line-height: 2em;
 }
 
-.post footer {
+footer.more {
 	text-align: right;
 }
 
-.post footer a {
+footer.more a {
 	font-size: 0.8em;
 	color: #AEB0B3;
 	font-weight: 600;
 	text-decoration: none;
 }
-.post footer a:hover {
+footer.more a:hover {
 	color: #57A3E8;
 }
