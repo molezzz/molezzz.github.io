@@ -1,3 +1,4 @@
 *.lock
 .rvmrc
 *Thumbs.db
+/_site
