@@ -8,7 +8,15 @@
     <title>Molezz 的胡言乱语</title>
     <link>https://molezzz.github.io</link>
     <description>一枚程序猿的自留地</description>
-    <pubDate>Sat, 12 Jul 2014 23:31:01 +0800</pubDate>
+    <pubDate>Thu, 21 Aug 2014 17:31:01 +0800</pubDate>
+    <item>
+      <title>Ruby的方法查找与method_missing</title>
+      <link>https://molezzz.github.io/ruby/2014/08/21/ruby-ancestors-and-method-missing.html</link>
+      <description>&lt;p&gt;...&lt;/p&gt;
+</description>
+      <pubDate>Thu, 21 Aug 2014 17:31:01 +0800</pubDate>
+      <dc:date>2014-08-21T17:31:01+08:00</dc:date>
+    </item>
     <item>
       <title>使用Ruby实现BigPipe</title>
       <link>https://molezzz.github.io/ruby/2014/07/12/bigpipe-with-ruby.html</link>
@@ -17,6 +25,6 @@
       <pubDate>Sat, 12 Jul 2014 23:31:01 +0800</pubDate>
       <dc:date>2014-07-12T23:31:01+08:00</dc:date>
     </item>
-    <dc:date>2014-07-12T23:31:01+08:00</dc:date>
+    <dc:date>2014-08-21T17:31:01+08:00</dc:date>
   </channel>
 </rss>

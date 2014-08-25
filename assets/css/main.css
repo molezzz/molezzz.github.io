@@ -15,7 +15,6 @@ pre{
 	font-size: 0.75em;
 	line-height: 1.4em;
 }
-
 /* Author styling */
 .author {margin-bottom:1em;}
 .author header{
@@ -42,6 +41,7 @@ img.profile {
 
 .post-title {
 	line-height: 2em;
+	font-size: 4rem;
 }
 
 footer.more {

@@ -313,11 +313,62 @@ sequence
 
 <p><img src="/images/2014-07/12/bs_chunked_websnap2.png" alt="chunked2"></p>
 
+<p>到目前为止，BigPipe还没有真正实现。现在还需要在服务器端实现一个并发操作——并发去读取和处理数据。Ruby实现并发有很多种方法。这里我使用了<code>EventMachine</code>的<code>defer</code>方法，将模拟的费时操作放入<code>defer</code>的块中：</p>
+
+<p><code>main.rb</code></p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">get</span> <span class="s1">&#39;/bigpipe&#39;</span> <span class="k">do</span>
+  <span class="n">response</span><span class="o">[</span><span class="s1">&#39;Transfer-Encoding&#39;</span><span class="o">]</span> <span class="o">=</span> <span class="s1">&#39;chunked&#39;</span>
+  <span class="n">stream</span> <span class="ss">:keep_open</span> <span class="k">do</span> <span class="o">|</span><span class="n">out</span><span class="o">|</span>
+    <span class="n">queue</span> <span class="o">=</span> <span class="o">[]</span>
+    <span class="c1">#当两个任务都执行完毕，关闭连接。</span>
+    <span class="n">callback</span> <span class="o">=</span> <span class="nb">proc</span> <span class="k">do</span> <span class="o">|</span><span class="n">result</span><span class="o">|</span>
+      <span class="n">queue</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span>
+      <span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">result</span>
+      <span class="n">out</span><span class="o">.</span><span class="n">close</span> <span class="k">if</span> <span class="n">queue</span><span class="o">.</span><span class="n">length</span> <span class="o">&gt;</span> <span class="mi">1</span>
+    <span class="k">end</span>
+    <span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">erb</span><span class="p">(</span><span class="ss">:bigpipe</span><span class="p">)</span>
+    <span class="no">EM</span><span class="o">.</span><span class="n">epoll</span>
+    <span class="no">EM</span><span class="o">.</span><span class="n">run</span> <span class="k">do</span>
+
+      <span class="no">EM</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span><span class="nb">proc</span><span class="p">{</span>
+        <span class="nb">sleep</span> <span class="mi">2</span>
+        <span class="s1">&#39;&lt;script&gt;Bigpipe.puts(&quot;pagelat1&quot;,&quot;这是第一块&quot;)&lt;/script&gt;&#39;</span>
+      <span class="p">},</span><span class="n">callback</span><span class="p">)</span>
+
+      <span class="no">EM</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span><span class="nb">proc</span> <span class="p">{</span>
+        <span class="nb">sleep</span> <span class="mi">5</span>
+        <span class="s1">&#39;&lt;script&gt;Bigpipe.puts(&quot;pagelat2&quot;,&quot;这是第二块&quot;)&lt;/script&gt;&#39;</span>
+      <span class="p">},</span><span class="n">callback</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>代码中使用了一个数组来检测是否所有任务都已完成。每完成一个任务，程序向数组queue中写入一个值，当数组中有两个元素时，程序判定所有任务都结束，然后关闭当前的链接。现在打开浏览器，访问<code>/bigpipe</code>，就会发现，整体响应时间由原来的7秒，变成了5秒。BigPipe成功减少了2秒的响应时间:</p>
+
+<p><img src="/images/2014-07/12/bs_bigpipe_websnap.png" alt="bigpipe"></p>
+
+<p>上面的例子只是使用最简单的方法实现了基本的BigPipe，实际运用中还要进一步的加工和完善。欢迎大家来吐槽指正。</p>
+
+<h3>在项目中使用BigPipe会产生的问题</h3>
+
+<p>一个新技术有利必然有弊，BigPipe在优化用户体验的同时又会产生哪些问题呢？目前已知可能会产生如下两个问题：</p>
+
+<ol>
+<li>搜索引擎无法抓取完整页面，从而产生一些问题</li>
+<li>由于前端页面需要分块传输，会增加整个程序的复杂度，对开发团队的要求较高。</li>
+</ol>
+
+<p>对于第一个问题，目前采取的解决办法是：服务器端检测请求头，如果是搜索引擎的蜘蛛，则不使用BigPipe技术而是直接返回完整的文档。对于第二个问题：我觉得合理使用是不错的解决方案。一些简单的页面就无需使用BigPipe技术了。</p>
+
+<p>欢迎转载，请注明出处，谢谢</p>
+
         </section>
 
         
         <div class="page-nav">
                         
+            
+            <a href="/ruby/2014/08/21/ruby-ancestors-and-method-missing.html">下一篇: Ruby的方法查找与method_missing</a>
             
         </div>
 
