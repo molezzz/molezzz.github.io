@@ -12,7 +12,7 @@
     <item>
       <title>Ruby的方法查找与method_missing</title>
       <link>https://molezzz.github.io/ruby/2014/08/21/ruby-ancestors-and-method-missing.html</link>
-      <description>&lt;p&gt;...&lt;/p&gt;
+      <description>&lt;p&gt;对Ruby祖先链和“method_missing”方法进行一次较为深入的探索。&lt;/p&gt;
 </description>
       <pubDate>Thu, 21 Aug 2014 17:31:01 +0800</pubDate>
       <dc:date>2014-08-21T17:31:01+08:00</dc:date>

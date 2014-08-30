@@ -276,7 +276,7 @@ NoMethodError: undefined method `bar&#39; for #&lt;Foo:0x007fc019952e38&gt;
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div>
-<p>这个写法，打开了<code>b</code>对象的单件类。单件类（singleton class/eigenclass）又称，元类(meta class)，影子类...。在Ruby 2.0之前，官方一直没有一个明确的名字。在单件类中定义的方法只在当前对象中存在。这就是为什么<code>a</code>对象没有响应<code>bar()</code>方法的原因。Ruby在进行方法查找的时候会优先查找对象单件类中定义的方法。所以，现在的方法查找路径变成了：</p>
+<p>这个写法，打开了<code>b</code>对象的单件类。单件类（singleton class/eigenclass）又称，元类(meta class)，影子类...。在Ruby 2.0之前，官方一直没有一个明确的名字，2.0以后官方称之为“Singleton class”。在单件类中定义的方法只在当前对象中存在。这就是为什么<code>a</code>对象没有响应<code>bar()</code>方法的原因。Ruby在进行方法查找的时候会优先查找对象单件类中定义的方法。所以，现在的方法查找路径变成了：</p>
 
 <p><img src="/images/2014-08/ruby_method_singleton_eat.png" alt="find singleton eat"></p>
 
@@ -323,7 +323,207 @@ NoMethodError: undefined method `bar&#39; for #&lt;Foo:0x007fc019952e38&gt;
 [Dog, Status, Action, Animal, Object, Kernel, BasicObject]
 call method: wang
 </code></pre></div>
-<p>奇迹出现了！Ruby没有报<code>NoMethodError</code>而是打印出了我们调用的方法名字。当你沉浸在<code>method_missing()</code>带来的喜悦中的时候，你可能已经掉进了一个坑中。</p>
+<p>奇迹出现了！Ruby没有报<code>NoMethodError</code>而是打印出了我们调用的方法名字。当你沉浸在<code>method_missing()</code>带来的喜悦中的时候，你可能已经掉进了一个坑中。来看下面一段测试：</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s1">&#39;benchmark&#39;</span>
+<span class="nb">require</span> <span class="s1">&#39;rubygems&#39;</span>
+<span class="nb">require</span> <span class="s1">&#39;sqlite3&#39;</span>
+<span class="nb">require</span> <span class="s1">&#39;active_record&#39;</span>
+
+
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="o">.</span><span class="n">establish_connection</span><span class="p">(</span>
+  <span class="ss">:adapter</span> <span class="o">=&gt;</span> <span class="s1">&#39;sqlite3&#39;</span><span class="p">,</span>
+  <span class="ss">:database</span> <span class="o">=&gt;</span> <span class="s1">&#39;:memory:&#39;</span>
+<span class="p">)</span>
+
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="o">.</span><span class="n">class_eval</span> <span class="k">do</span>
+  <span class="n">create_table</span> <span class="ss">:as</span> <span class="k">do</span> <span class="o">|</span><span class="n">table</span><span class="o">|</span>
+
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:string</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:performer</span><span class="p">,</span> <span class="ss">:string</span>
+
+  <span class="k">end</span>
+
+  <span class="n">create_table</span> <span class="ss">:bs</span> <span class="k">do</span> <span class="o">|</span><span class="n">table</span><span class="o">|</span>
+
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:string</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:performer</span><span class="p">,</span> <span class="ss">:string</span>
+
+  <span class="k">end</span>
+<span class="k">end</span>
+
+
+<span class="k">class</span> <span class="nc">A</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+
+  <span class="k">def</span> <span class="nf">test</span>
+    <span class="kp">true</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">B</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+
+  <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="nb">method</span><span class="p">)</span>
+    <span class="kp">true</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">new</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">new</span>
+
+
+<span class="no">Benchmark</span><span class="o">.</span><span class="n">bmbm</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;call method:&#39;</span><span class="p">)</span> <span class="p">{</span> <span class="mi">10000000</span><span class="o">.</span><span class="n">times</span> <span class="p">{</span> <span class="n">a</span><span class="o">.</span><span class="n">test</span> <span class="p">}</span> <span class="p">}</span>
+  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;call method_missing:&#39;</span><span class="p">){</span> <span class="mi">10000000</span><span class="o">.</span><span class="n">times</span> <span class="p">{</span> <span class="n">b</span><span class="o">.</span><span class="n">test</span> <span class="p">}</span>  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>我们使用Ruby提供的<code>Benchmark</code>进行基准测试。为了尽可能减小误差，代码中使用了<code>bmbm()</code>方法，给要测试的代码进行“预热”。输出的结果如下：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"># Ruby 2.1 / Activerecord 3.2.16
+
+Rehearsal --------------------------------------------------------
+call method:           1.040000   0.000000   1.040000 (  1.047809)
+call method_missing:   1.300000   0.010000   1.310000 (  1.295754)
+----------------------------------------------- total: 2.350000sec
+
+                           user     system      total        real
+call method:           1.050000   0.000000   1.050000 (  1.047334)
+call method_missing:   1.280000   0.000000   1.280000 (  1.286637)
+</code></pre></div>
+<p><code>method_missing()</code>固然很强大，但是它是有一定性能损失的(从测试上看，大概20%左右)。这个性能损失一部分就是来自于祖先链的查找。祖先链越长，性能损失越大。虽然相比性能损失，<code>method_missing()</code>带来的便捷性和灵活性是我们更看重的，但是在一些高负载的环节，性能问题还是不得不留意。</p>
+
+<h2>讨论</h2>
+
+<p>我们在Rails的源代码里经常见到这样的写法：</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#rails / actionpack / lib / action_dispatch / routing / routes_proxy.rb line 25</span>
+<span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="nb">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">routes</span><span class="o">.</span><span class="n">url_helpers</span><span class="o">.</span><span class="n">respond_to?</span><span class="p">(</span><span class="nb">method</span><span class="p">)</span>
+    <span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">class_eval</span> <span class="o">&lt;&lt;-</span><span class="no">RUBY</span><span class="p">,</span> <span class="bp">__FILE__</span><span class="p">,</span> <span class="bp">__LINE__</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="sh">      def #{method}(*args)</span>
+<span class="sh">        options = args.extract_options!</span>
+<span class="sh">        args &lt;&lt; url_options.merge((options || {}).symbolize_keys)</span>
+<span class="sh">        routes.url_helpers.#{method}(*args)</span>
+<span class="sh">      end</span>
+<span class="no">    RUBY</span>
+    <span class="nb">send</span><span class="p">(</span><span class="nb">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+  <span class="k">else</span>
+    <span class="k">super</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>在一些文章里也有很多人讨论使用类似的方法提高<code>method_missing()</code>的性能。即在<code>method_missing()</code>中动态创建方法，这样可以省掉后面调用时对祖先链进行查找消耗的时间。我们也把试验代码改动下：</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s1">&#39;benchmark&#39;</span>
+<span class="nb">require</span> <span class="s1">&#39;rubygems&#39;</span>
+<span class="nb">require</span> <span class="s1">&#39;sqlite3&#39;</span>
+<span class="nb">require</span> <span class="s1">&#39;active_record&#39;</span>
+
+
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="o">.</span><span class="n">establish_connection</span><span class="p">(</span>
+  <span class="ss">:adapter</span> <span class="o">=&gt;</span> <span class="s1">&#39;sqlite3&#39;</span><span class="p">,</span>
+  <span class="ss">:database</span> <span class="o">=&gt;</span> <span class="s1">&#39;:memory:&#39;</span>
+<span class="p">)</span>
+
+
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="o">.</span><span class="n">class_eval</span> <span class="k">do</span>
+  <span class="n">create_table</span> <span class="ss">:as</span> <span class="k">do</span> <span class="o">|</span><span class="n">table</span><span class="o">|</span>
+
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:string</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:performer</span><span class="p">,</span> <span class="ss">:string</span>
+
+  <span class="k">end</span>
+
+  <span class="n">create_table</span> <span class="ss">:bs</span> <span class="k">do</span> <span class="o">|</span><span class="n">table</span><span class="o">|</span>
+
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:string</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:performer</span><span class="p">,</span> <span class="ss">:string</span>
+
+  <span class="k">end</span>
+
+  <span class="n">create_table</span> <span class="ss">:cs</span> <span class="k">do</span> <span class="o">|</span><span class="n">table</span><span class="o">|</span>
+
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:string</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">column</span> <span class="ss">:performer</span><span class="p">,</span> <span class="ss">:string</span>
+
+  <span class="k">end</span>
+<span class="k">end</span>
+
+
+<span class="k">class</span> <span class="nc">A</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+
+  <span class="k">def</span> <span class="nf">test</span>
+    <span class="kp">true</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">B</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+
+  <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="nb">method</span><span class="p">)</span>
+    <span class="kp">true</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">C</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+
+  <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="nb">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="ss">:define_method</span><span class="p">,</span> <span class="nb">method</span><span class="p">)</span> <span class="k">do</span>
+      <span class="kp">true</span>
+    <span class="k">end</span>
+
+    <span class="c1"># self.class.class_eval &lt;&lt;-RUBY</span>
+    <span class="c1">#   def #{method}(*args)</span>
+    <span class="c1">#     true</span>
+    <span class="c1">#   end</span>
+    <span class="c1"># RUBY</span>
+
+    <span class="nb">send</span><span class="p">(</span><span class="nb">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+  <span class="k">end</span>
+
+<span class="k">end</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">new</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">new</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">new</span>
+
+
+
+<span class="no">Benchmark</span><span class="o">.</span><span class="n">bmbm</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;call method:&#39;</span><span class="p">)</span> <span class="p">{</span> <span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="p">{</span> <span class="n">a</span><span class="o">.</span><span class="n">test</span> <span class="p">}</span> <span class="p">}</span>
+  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;call method_missing:&#39;</span><span class="p">){</span> <span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="p">{</span> <span class="n">b</span><span class="o">.</span><span class="n">test</span> <span class="p">}</span>  <span class="p">}</span>
+  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;call dynamic method:&#39;</span><span class="p">){</span> <span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="p">{</span> <span class="n">c</span><span class="o">.</span><span class="n">test</span> <span class="p">}</span>  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>这次加入<code>C</code>类，并且在<code>method_missing()</code>中动态定义了方法，然后执行测试:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"># Ruby 2.1 / Activerecord 3.2.16
+
+Rehearsal --------------------------------------------------------
+call method:           0.110000   0.000000   0.110000 (  0.110478)
+call method_missing:   0.140000   0.000000   0.140000 (  0.137801)
+call dynamic method:   0.160000   0.000000   0.160000 (  0.158153)
+----------------------------------------------- total: 0.410000sec
+
+                           user     system      total        real
+call method:           0.110000   0.000000   0.110000 (  0.105553)
+call method_missing:   0.130000   0.000000   0.130000 (  0.134528)
+call dynamic method:   0.150000   0.000000   0.150000 (  0.155159)
+</code></pre></div>
+<p>很奇怪动态创建方法不仅没有提升性能，反而略有降低。我们把同样的代码在 Ruby 1.9.3环境下测试一遍：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">#Ruby 1.9.3 p547 / Activerecord 3.2.16
+
+Rehearsal --------------------------------------------------------
+call method:           0.290000   0.000000   0.290000 (  0.294679)
+call method_missing:   0.450000   0.000000   0.450000 (  0.449482)
+call dynamic method:   0.410000   0.000000   0.410000 (  0.410275)
+----------------------------------------------- total: 1.150000sec
+
+                           user     system      total        real
+call method:           0.300000   0.000000   0.300000 (  0.297368)
+call method_missing:   0.460000   0.000000   0.460000 (  0.454473)
+call dynamic method:   0.410000   0.000000   0.410000 (  0.409693)
+</code></pre></div>
+<p>这次跟我们的猜测一致了。在<code>method_missing()</code>中动态定义方法确实能提高一些性能。看来Ruby 2.1版对<code>method_missing()</code>进行了优化。“今后是否还要在<code>method_missing()</code>中使用动态方法定义来提高性能？”成为一个值得考虑的问题。</p>
 
         </section>
 

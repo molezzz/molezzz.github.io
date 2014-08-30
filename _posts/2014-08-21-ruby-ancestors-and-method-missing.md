@@ -3,7 +3,7 @@ layout: post
 title:  "Ruby的方法查找与method_missing"
 date:   2014-08-21 09:31:01
 categories: ruby
-excerpt: ...
+excerpt: 对Ruby祖先链和“method_missing”方法进行一次较为深入的探索。
 ---
 
 在Ruby的世界里，一切都是对象。她的继承体系不像C++那么复杂，但是也有自己的特色。她不支持多重继承，但是支持模块的混入。她虽然没有接口，但是有“鸭子类型”(duck type)。
@@ -284,7 +284,7 @@ class << b
 end
 ```
 
-这个写法，打开了`b`对象的单件类。单件类（singleton class/eigenclass）又称，元类(meta class)，影子类...。在Ruby 2.0之前，官方一直没有一个明确的名字。在单件类中定义的方法只在当前对象中存在。这就是为什么`a`对象没有响应`bar()`方法的原因。Ruby在进行方法查找的时候会优先查找对象单件类中定义的方法。所以，现在的方法查找路径变成了：
+这个写法，打开了`b`对象的单件类。单件类（singleton class/eigenclass）又称，元类(meta class)，影子类...。在Ruby 2.0之前，官方一直没有一个明确的名字，2.0以后官方称之为“Singleton class”。在单件类中定义的方法只在当前对象中存在。这就是为什么`a`对象没有响应`bar()`方法的原因。Ruby在进行方法查找的时候会优先查找对象单件类中定义的方法。所以，现在的方法查找路径变成了：
 
 
 ![find singleton eat](/images/2014-08/ruby_method_singleton_eat.png)
@@ -345,7 +345,236 @@ eat from dog
 [Dog, Status, Action, Animal, Object, Kernel, BasicObject]
 call method: wang
 ```
-奇迹出现了！Ruby没有报`NoMethodError`而是打印出了我们调用的方法名字。当你沉浸在`method_missing()`带来的喜悦中的时候，你可能已经掉进了一个坑中。
+奇迹出现了！Ruby没有报`NoMethodError`而是打印出了我们调用的方法名字。当你沉浸在`method_missing()`带来的喜悦中的时候，你可能已经掉进了一个坑中。来看下面一段测试：
+
+``` ruby
+require 'benchmark'
+require 'rubygems'
+require 'sqlite3'
+require 'active_record'
+
+
+ActiveRecord::Base.establish_connection(
+  :adapter => 'sqlite3',
+  :database => ':memory:'
+)
+
+ActiveRecord::Migration.class_eval do
+  create_table :as do |table|
+
+    table.column :title, :string
+    table.column :performer, :string
+
+  end
+
+  create_table :bs do |table|
+
+    table.column :title, :string
+    table.column :performer, :string
+
+  end
+end
+
+
+class A < ActiveRecord::Base
+
+  def test
+    true
+  end
+
+end
+
+class B < ActiveRecord::Base
+
+  def method_missing(method)
+    true
+  end
+
+end
+
+a = A.new
+b = B.new
+
+
+Benchmark.bmbm do |x|
+  x.report('call method:') { 10000000.times { a.test } }
+  x.report('call method_missing:'){ 10000000.times { b.test }  }
+end
+
+```
+
+我们使用Ruby提供的`Benchmark`进行基准测试。为了尽可能减小误差，代码中使用了`bmbm()`方法，给要测试的代码进行“预热”。输出的结果如下：
+
+
+
+```
+# Ruby 2.1 / Activerecord 3.2.16
+
+Rehearsal --------------------------------------------------------
+call method:           1.040000   0.000000   1.040000 (  1.047809)
+call method_missing:   1.300000   0.010000   1.310000 (  1.295754)
+----------------------------------------------- total: 2.350000sec
+
+                           user     system      total        real
+call method:           1.050000   0.000000   1.050000 (  1.047334)
+call method_missing:   1.280000   0.000000   1.280000 (  1.286637)
+
+```
+
+
+`method_missing()`固然很强大，但是它是有一定性能损失的(从测试上看，大概20%左右)。这个性能损失一部分就是来自于祖先链的查找。祖先链越长，性能损失越大。虽然相比性能损失，`method_missing()`带来的便捷性和灵活性是我们更看重的，但是在一些高负载的环节，性能问题还是不得不留意。
+
+##讨论
+
+我们在Rails的源代码里经常见到这样的写法：
+
+``` ruby
+#rails / actionpack / lib / action_dispatch / routing / routes_proxy.rb line 25
+def method_missing(method, *args)
+  if routes.url_helpers.respond_to?(method)
+    self.class.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      def #{method}(*args)
+        options = args.extract_options!
+        args << url_options.merge((options || {}).symbolize_keys)
+        routes.url_helpers.#{method}(*args)
+      end
+    RUBY
+    send(method, *args)
+  else
+    super
+  end
+end
+
+```
+
+在一些文章里也有很多人讨论使用类似的方法提高`method_missing()`的性能。即在`method_missing()`中动态创建方法，这样可以省掉后面调用时对祖先链进行查找消耗的时间。我们也把试验代码改动下：
+
+``` ruby
+require 'benchmark'
+require 'rubygems'
+require 'sqlite3'
+require 'active_record'
+
+
+ActiveRecord::Base.establish_connection(
+  :adapter => 'sqlite3',
+  :database => ':memory:'
+)
+
+
+ActiveRecord::Migration.class_eval do
+  create_table :as do |table|
+
+    table.column :title, :string
+    table.column :performer, :string
+
+  end
+
+  create_table :bs do |table|
+
+    table.column :title, :string
+    table.column :performer, :string
+
+  end
+
+  create_table :cs do |table|
+
+    table.column :title, :string
+    table.column :performer, :string
+
+  end
+end
+
+
+class A < ActiveRecord::Base
+
+  def test
+    true
+  end
+
+end
+
+class B < ActiveRecord::Base
+
+  def method_missing(method)
+    true
+  end
+
+end
+
+class C < ActiveRecord::Base
+
+  def method_missing(method, *args)
+
+    self.class.send(:define_method, method) do
+      true
+    end
+
+    # self.class.class_eval <<-RUBY
+    #   def #{method}(*args)
+    #     true
+    #   end
+    # RUBY
+
+    send(method, *args)
+
+  end
+
+end
+
+a = A.new
+b = B.new
+c = C.new
+
+
+
+Benchmark.bmbm do |x|
+  x.report('call method:') { 1000000.times { a.test } }
+  x.report('call method_missing:'){ 1000000.times { b.test }  }
+  x.report('call dynamic method:'){ 1000000.times { c.test }  }
+end
+```
+
+这次加入`C`类，并且在`method_missing()`中动态定义了方法，然后执行测试:
+
+
+```
+# Ruby 2.1 / Activerecord 3.2.16
+
+Rehearsal --------------------------------------------------------
+call method:           0.110000   0.000000   0.110000 (  0.110478)
+call method_missing:   0.140000   0.000000   0.140000 (  0.137801)
+call dynamic method:   0.160000   0.000000   0.160000 (  0.158153)
+----------------------------------------------- total: 0.410000sec
+
+                           user     system      total        real
+call method:           0.110000   0.000000   0.110000 (  0.105553)
+call method_missing:   0.130000   0.000000   0.130000 (  0.134528)
+call dynamic method:   0.150000   0.000000   0.150000 (  0.155159)
+```
+
+很奇怪动态创建方法不仅没有提升性能，反而略有降低。我们把同样的代码在 Ruby 1.9.3环境下测试一遍：
+
+```
+#Ruby 1.9.3 p547 / Activerecord 3.2.16
+
+Rehearsal --------------------------------------------------------
+call method:           0.290000   0.000000   0.290000 (  0.294679)
+call method_missing:   0.450000   0.000000   0.450000 (  0.449482)
+call dynamic method:   0.410000   0.000000   0.410000 (  0.410275)
+----------------------------------------------- total: 1.150000sec
+
+                           user     system      total        real
+call method:           0.300000   0.000000   0.300000 (  0.297368)
+call method_missing:   0.460000   0.000000   0.460000 (  0.454473)
+call dynamic method:   0.410000   0.000000   0.410000 (  0.409693)
+
+```
+
+这次跟我们的猜测一致了。在`method_missing()`中动态定义方法确实能提高一些性能。看来Ruby 2.1版对`method_missing()`进行了优化。“今后是否还要在`method_missing()`中使用动态方法定义来提高性能？”成为一个值得考虑的问题。
+
+
+
 
 
 

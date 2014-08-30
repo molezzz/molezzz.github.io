@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <style type="text/css">
+  	.pagelat {
+  		margin: 20px;
+  		border: 1px dotted #CCC;
+  	}
+  	.pagelat h2 {
+  		background: #999;
+  		color: #FFF;
+  		margin:0;
+  		line-height: 2em;
+  	}
+  </style>
+  <script type="text/javascript">
+  var Bigpipe = {
+  	puts: function(id,content){
+      console.log(id,content);
+  		var dom = document.getElementById(id);
+      console.log(dom);
+  		if(dom) dom.innerHTML = content;
+  	}
+  };
+  </script>
+</head>
+<body>
+	<div class="pagelat">
+		<h2>区域1</h2>
+		<p id="pagelat1"></p>
+	</div>
+	<div class="pagelat">
+		<h2>区域2</h2>
+		<p id="pagelat2"></p>
+	</div>
