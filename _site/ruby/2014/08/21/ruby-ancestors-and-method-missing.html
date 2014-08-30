@@ -212,7 +212,7 @@
 <span class="no">Dog</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">eat</span>
 <span class="nb">p</span> <span class="no">Dog</span><span class="o">.</span><span class="n">ancestors</span>
 </code></pre></div>
-<p><code>Dog</code>类本身没有<code>eat()</code>方法，我们在<code>Dog</code>的对象上调用<code>eat()</code>方法后，Ruby会先查找<code>Dog</code>类中的实例方法，然后沿着原型链一直向上找，直到找到<code>Action</code>模块中的方法后进行了调用。</p>
+<p><code>Dog</code>类本身没有<code>eat()</code>方法，我们在<code>Dog</code>的对象上调用<code>eat()</code>方法后，Ruby会先查找<code>Dog</code>类中的实例方法，然后沿着祖先链一直向上找，直到找到<code>Action</code>模块中的方法后进行了调用。</p>
 
 <p><img src="/images/2014-08/ruby_method_eat.png" alt="find eat"></p>
 

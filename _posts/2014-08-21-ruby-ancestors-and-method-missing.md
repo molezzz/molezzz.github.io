@@ -201,7 +201,7 @@ Dog.new.eat
 p Dog.ancestors
 ```
 
-`Dog`类本身没有`eat()`方法，我们在`Dog`的对象上调用`eat()`方法后，Ruby会先查找`Dog`类中的实例方法，然后沿着原型链一直向上找，直到找到`Action`模块中的方法后进行了调用。
+`Dog`类本身没有`eat()`方法，我们在`Dog`的对象上调用`eat()`方法后，Ruby会先查找`Dog`类中的实例方法，然后沿着祖先链一直向上找，直到找到`Action`模块中的方法后进行了调用。
 
 ![find eat](/images/2014-08/ruby_method_eat.png)
 
